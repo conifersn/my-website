@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - T-licX</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+      color: #1a1a2e;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .header {
+      padding: 20px 30px;
+      background: #0b0d12;
+      color: #f2f4f8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 22px; font-weight: 600; }
+    .header a { color: #8ab4f8; text-decoration: none; }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      background: #fafbfc;
+    }
+    .tab {
+      padding: 14px 28px;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: 0.2s;
+      color: #4a5568;
+    }
+    .tab:hover { background: #edf2f7; }
+    .tab.active {
+      border-bottom-color: #0a84ff;
+      color: #0a84ff;
+      background: #fff;
+    }
+    .tab-content {
+      display: none;
+      padding: 24px 30px;
+    }
+    .tab-content.active { display: block; }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.15s;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .btn-primary { background: #0a84ff; color: #fff; }
+    .btn-primary:hover { background: #0066cc; }
+    .btn-success { background: #38a169; color: #fff; }
+    .btn-success:hover { background: #2f855a; }
+    .btn-danger { background: #e53e3e; color: #fff; }
+    .btn-danger:hover { background: #c53030; }
+    .btn-sm { padding: 4px 12px; font-size: 13px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th { background: #f7fafc; font-weight: 600; color: #2d3748; }
+    tr:hover { background: #f7fafc; }
+    .badge {
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-pending { background: #edf2f7; color: #2d3748; }
+    .badge-paid { background: #c6f6d5; color: #22543d; }
+    .badge-shipped { background: #bee3f8; color: #2a4365; }
+    .badge-cancelled { background: #fed7d7; color: #9b2c2c; }
+    .order-items { font-size: 13px; color: #4a5568; }
+    .order-items div { padding: 2px 0; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 { margin-bottom: 20px; font-size: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-group textarea { min-height: 60px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🛠️ Admin Panel — T-licX</h1>
+    <a href="/" target="_blank">← Về website</a>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="products">📦 Sản phẩm</div>
+    <div class="tab" data-tab="customers">👤 Khách hàng</div>
+    <div class="tab" data-tab="orders">🧾 Đơn hàng</div>
+  </div>
+
+  <!-- Products -->
+  <div class="tab-content active" id="tab-products">
+    <div class="toolbar">
+      <h2>Danh sách sản phẩm</h2>
+      <button class="btn btn-primary" onclick="openModal('productModal', null)">+ Thêm sản phẩm</button>
+    </div>
+    <table id="productsTable">
+      <thead><tr><th>ID</th><th>Tên</th><th>Mô tả</th><th>Giá</th><th>Tồn kho</th><th>Loại</th><th>Hành động</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Customers -->
+  <div class="tab-content" id="tab-customers">
+    <div class="toolbar">
+      <h2>Danh sách khách hàng</h2>
+      <button class="btn btn-primary" onclick="openModal('customerModal', null)">+ Thêm khách hàng</button>
+    </div>
+    <table id="customersTable">
+      <thead><tr><th>ID</th><th>Tên</th><th>Email</th><th>SĐT</th><th>Công ty</th><th>Hành động</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Orders -->
+  <div class="tab-content" id="tab-orders">
+    <div class="toolbar">
+      <h2>Danh sách đơn hàng</h2>
+      <button class="btn btn-primary" onclick="openModal('orderModal', null)">+ Tạo đơn hàng</button>
+    </div>
+    <table id="ordersTable">
+      <thead><tr><th>ID</th><th>Khách hàng</th><th>Ngày</th><th>Tổng tiền</th><th>Trạng thái</th><th>Chi tiết</th><th>Hành động</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Product Modal -->
+<div class="modal" id="productModal">
+  <div class="modal-content">
+    <h2 id="productModalTitle">Thêm sản phẩm</h2>
+    <form id="productForm">
+      <input type="hidden" name="id" id="productId">
+      <div class="form-group"><label>Tên sản phẩm *</label><input name="name" id="productName" required></div>
+      <div class="form-group"><label>Mô tả</label><textarea name="description" id="productDesc"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Giá (VNĐ) *</label><input name="price" id="productPrice" type="number" step="1000" required></div>
+        <div class="form-group"><label>Tồn kho</label><input name="stock" id="productStock" type="number" value="0"></div>
+      </div>
+      <div class="form-group"><label>Loại</label>
+        <select name="type" id="productType">
+          <option value="physical">Vật lý</option>
+          <option value="digital">Số (key)</option>
+          <option value="service">Dịch vụ</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeModal('productModal')">Hủy</button>
+        <button type="submit" class="btn btn-success">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal" id="customerModal">
+  <div class="modal-content">
+    <h2 id="customerModalTitle">Thêm khách hàng</h2>
+    <form id="customerForm">
+      <input type="hidden" name="id" id="customerId">
+      <div class="form-group"><label>Tên khách hàng *</label><input name="name" id="customerName" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input name="email" id="customerEmail" type="email"></div>
+        <div class="form-group"><label>Số điện thoại</label><input name="phone" id="customerPhone"></div>
+      </div>
+      <div class="form-group"><label>Công ty</label><input name="company" id="customerCompany"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeModal('customerModal')">Hủy</button>
+        <button type="submit" class="btn btn-success">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal" id="orderModal">
+  <div class="modal-content">
+    <h2 id="orderModalTitle">Tạo đơn hàng</h2>
+    <form id="orderForm">
+      <input type="hidden" name="id" id="orderId">
+      <div class="form-group"><label>Khách hàng *</label>
+        <select name="customer_id" id="orderCustomer" required></select>
+      </div>
+      <div class="form-group"><label>Trạng thái</label>
+        <select name="status" id="orderStatus">
+          <option value="pending">Chờ xử lý</option>
+          <option value="paid">Đã thanh toán</option>
+          <option value="shipped">Đã giao</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Ghi chú</label><textarea name="notes" id="orderNotes"></textarea></div>
+      <div class="form-group">
+        <label>Sản phẩm (chọn và nhập số lượng)</label>
+        <div id="orderItemsContainer">
+          <div class="order-item-row" style="display:flex; gap:10px; margin-bottom:6px; align-items:center;">
+            <select name="product_id[]" style="flex:2; padding:8px; border:1px solid #cbd5e0; border-radius:6px;"></select>
+            <input name="quantity[]" type="number" min="1" value="1" style="flex:1; padding:8px; border:1px solid #cbd5e0; border-radius:6px;">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeOrderItem(this)">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addOrderItemRow()">+ Thêm sản phẩm</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeModal('orderModal')">Hủy</button>
+        <button type="submit" class="btn btn-success">Tạo đơn hàng</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// ====== STATE ======
+let productsCache = [];
+let customersCache = [];
+
+// ====== TAB SWITCHING ======
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    const tabName = this.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    if (tabName === 'products') loadProducts();
+    else if (tabName === 'customers') loadCustomers();
+    else if (tabName === 'orders') loadOrders();
+  });
+});
+
+// ====== MODAL HELPERS ======
+function openModal(modalId, data = null) {
+  const modal = document.getElementById(modalId);
+  modal.classList.add('active');
+  if (modalId === 'productModal') {
+    document.getElementById('productForm').reset();
+    document.getElementById('productId').value = '';
+    document.getElementById('productModalTitle').textContent = 'Thêm sản phẩm';
+    if (data) {
+      document.getElementById('productId').value = data.id;
+      document.getElementById('productName').value = data.name;
+      document.getElementById('productDesc').value = data.description || '';
+      document.getElementById('productPrice').value = data.price;
+      document.getElementById('productStock').value = data.stock;
+      document.getElementById('productType').value = data.type;
+      document.getElementById('productModalTitle').textContent = 'Sửa sản phẩm';
+    }
+  } else if (modalId === 'customerModal') {
+    document.getElementById('customerForm').reset();
+    document.getElementById('customerId').value = '';
+    document.getElementById('customerModalTitle').textContent = 'Thêm khách hàng';
+    if (data) {
+      document.getElementById('customerId').value = data.id;
+      document.getElementById('customerName').value = data.name;
+      document.getElementById('customerEmail').value = data.email || '';
+      document.getElementById('customerPhone').value = data.phone || '';
+      document.getElementById('customerCompany').value = data.company || '';
+      document.getElementById('customerModalTitle').textContent = 'Sửa khách hàng';
+    }
+  } else if (modalId === 'orderModal') {
+    document.getElementById('orderForm').reset();
+    document.getElementById('orderId').value = '';
+    document.getElementById('orderModalTitle').textContent = 'Tạo đơn hàng';
+    loadCustomerSelect();
+    loadProductSelects();
+    const container = document.getElementById('orderItemsContainer');
+    container.innerHTML = '';
+    addOrderItemRow();
+    if (data) {
+      document.getElementById('orderId').value = data.id;
+      document.getElementById('orderStatus').value = data.status;
+      document.getElementById('orderNotes').value = data.notes || '';
+      document.getElementById('orderModalTitle').textContent = 'Cập nhật đơn hàng';
+      document.querySelector('#orderItemsContainer').style.display = 'none';
+      document.querySelector('#orderItemsContainer + button').style.display = 'none';
+    } else {
+      document.querySelector('#orderItemsContainer').style.display = 'block';
+      document.querySelector('#orderItemsContainer + button').style.display = 'inline-block';
+    }
+  }
+}
+function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+// ====== API HELPERS ======
+async function api(method, url, data = null) {
+  const options = { method, headers: { 'Content-Type': 'application/json' } };
+  if (data) options.body = JSON.stringify(data);
+  const res = await fetch(url, options);
+  return res.json();
+}
+
+// ====== PRODUCTS ======
+async function loadProducts() {
+  const data = await api('GET', '/api/products');
+  if (data.success) {
+    productsCache = data.data;
+    const tbody = document.querySelector('#productsTable tbody');
+    tbody.innerHTML = data.data.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td><strong>${p.name}</strong></td>
+        <td>${p.description || ''}</td>
+        <td>${Number(p.price).toLocaleString()}₫</td>
+        <td>${p.stock}</td>
+        <td><span class="badge">${p.type}</span></td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editProduct(${p.id})">Sửa</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Xóa</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+async function editProduct(id) { const p = productsCache.find(x => x.id == id); if (p) openModal('productModal', p); }
+async function deleteProduct(id) { if (!confirm('Xóa sản phẩm này?')) return; const res = await api('DELETE', `/api/products/${id}`); alert(res.message); if (res.success) loadProducts(); }
+
+document.getElementById('productForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const id = formData.get('id');
+  const payload = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    price: parseFloat(formData.get('price')),
+    stock: parseInt(formData.get('stock')) || 0,
+    type: formData.get('type')
+  };
+  const url = id ? `/api/products/${id}` : '/api/products';
+  const method = id ? 'PUT' : 'POST';
+  const res = await api(method, url, payload);
+  alert(res.message);
+  if (res.success) { closeModal('productModal'); loadProducts(); }
+});
+
+// ====== CUSTOMERS ======
+async function loadCustomers() {
+  const data = await api('GET', '/api/customers');
+  if (data.success) {
+    customersCache = data.data;
+    const tbody = document.querySelector('#customersTable tbody');
+    tbody.innerHTML = data.data.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td><strong>${c.name}</strong></td>
+        <td>${c.email || ''}</td>
+        <td>${c.phone || ''}</td>
+        <td>${c.company || ''}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editCustomer(${c.id})">Sửa</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Xóa</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+async function editCustomer(id) { const c = customersCache.find(x => x.id == id); if (c) openModal('customerModal', c); }
+async function deleteCustomer(id) { if (!confirm('Xóa khách hàng này?')) return; const res = await api('DELETE', `/api/customers/${id}`); alert(res.message); if (res.success) loadCustomers(); }
+
+document.getElementById('customerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const id = formData.get('id');
+  const payload = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    company: formData.get('company')
+  };
+  const url = id ? `/api/customers/${id}` : '/api/customers';
+  const method = id ? 'PUT' : 'POST';
+  const res = await api(method, url, payload);
+  alert(res.message);
+  if (res.success) { closeModal('customerModal'); loadCustomers(); }
+});
+
+// ====== ORDERS ======
+async function loadOrders() {
+  const data = await api('GET', '/api/orders');
+  if (data.success) {
+    const tbody = document.querySelector('#ordersTable tbody');
+    tbody.innerHTML = data.data.map(o => `
+      <tr>
+        <td>${o.id}</td>
+        <td>${o.customer_name || 'N/A'}</td>
+        <td>${o.order_date}</td>
+        <td>${Number(o.total).toLocaleString()}₫</td>
+        <td><span class="badge badge-${o.status}">${o.status}</span></td>
+        <td>
+          <div class="order-items">
+            ${(o.items || []).map(item => `<div>${item.product_name} x${item.quantity} = ${Number(item.price*item.quantity).toLocaleString()}₫</div>`).join('')}
+          </div>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editOrder(${o.id})">Sửa</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})">Xóa</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+async function editOrder(id) {
+  const data = await api('GET', '/api/orders');
+  if (data.success) {
+    const order = data.data.find(o => o.id == id);
+    if (order) openModal('orderModal', order);
+  }
+}
+async function deleteOrder(id) {
+  if (!confirm('Xóa đơn hàng này?')) return;
+  const res = await api('DELETE', `/api/orders/${id}`);
+  alert(res.message);
+  if (res.success) loadOrders();
+}
+
+document.getElementById('orderForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const id = formData.get('id');
+  if (id) {
+    // Update only status & notes
+    const payload = { status: formData.get('status'), notes: formData.get('notes') };
+    const res = await api('PUT', `/api/orders/${id}`, payload);
+    alert(res.message);
+    if (res.success) { closeModal('orderModal'); loadOrders(); }
+  } else {
+    // New order
+    const customer_id = parseInt(formData.get('customer_id'));
+    const status = formData.get('status');
+    const notes = formData.get('notes');
+    const productSelects = document.querySelectorAll('#orderItemsContainer select[name="product_id[]"]');
+    const quantityInputs = document.querySelectorAll('#orderItemsContainer input[name="quantity[]"]');
+    const items = [];
+    for (let i = 0; i < productSelects.length; i++) {
+      const pid = parseInt(productSelects[i].value);
+      const qty = parseInt(quantityInputs[i].value);
+      if (pid && qty > 0) items.push({ product_id: pid, quantity: qty });
+    }
+    if (items.length === 0) { alert('Vui lòng chọn ít nhất một sản phẩm'); return; }
+    const payload = { customer_id, items, status, notes };
+    const res = await api('POST', '/api/orders', payload);
+    alert(res.message);
+    if (res.success) { closeModal('orderModal'); loadOrders(); loadProducts(); }
+  }
+});
+
+// ====== HELPER FUNCTIONS ======
+async function loadCustomerSelect() {
+  const data = await api('GET', '/api/customers');
+  if (data.success) {
+    const select = document.getElementById('orderCustomer');
+    select.innerHTML = data.data.map(c => `<option value="${c.id}">${c.name} (${c.company || ''})</option>`).join('');
+  }
+}
+async function loadProductSelects() {
+  const data = await api('GET', '/api/products');
+  if (data.success) {
+    productsCache = data.data;
+    const selects = document.querySelectorAll('#orderItemsContainer select[name="product_id[]"]');
+    selects.forEach(sel => {
+      sel.innerHTML = data.data.map(p => `<option value="${p.id}">${p.name} - ${Number(p.price).toLocaleString()}₫ (còn ${p.stock})</option>`).join('');
+    });
+  }
+}
+function addOrderItemRow() {
+  const container = document.getElementById('orderItemsContainer');
+  const row = document.createElement('div');
+  row.className = 'order-item-row';
+  row.style.cssText = 'display:flex; gap:10px; margin-bottom:6px; align-items:center;';
+  row.innerHTML = `
+    <select name="product_id[]" style="flex:2; padding:8px; border:1px solid #cbd5e0; border-radius:6px;">
+      ${productsCache.map(p => `<option value="${p.id}">${p.name} - ${Number(p.price).toLocaleString()}₫ (còn ${p.stock})</option>`).join('')}
+    </select>
+    <input name="quantity[]" type="number" min="1" value="1" style="flex:1; padding:8px; border:1px solid #cbd5e0; border-radius:6px;">
+    <button type="button" class="btn btn-danger btn-sm" onclick="removeOrderItem(this)">✕</button>
+  `;
+  container.appendChild(row);
+}
+function removeOrderItem(btn) {
+  if (document.querySelectorAll('#orderItemsContainer .order-item-row').length > 1) {
+    btn.closest('.order-item-row').remove();
+  } else {
+    alert('Phải có ít nhất một sản phẩm');
+  }
+}
+
+// ====== INIT ======
+document.addEventListener('DOMContentLoaded', loadProducts);
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T-licX - Nền tảng License Software</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0b0d12 0%, #1a1e28 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 48px 40px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #f2f4f8;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #8ab4f8;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, #0a84ff, #00c2ff);
+      margin: 0 auto 32px;
+      border-radius: 2px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 380px;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.06);
+      color: #b7bfcf;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0a84ff, #0066cc);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(10, 132, 255, 0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(10, 132, 255, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #b7bfcf;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .btn .badge {
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-weight: 500;
+    }
+
+    .btn-primary .badge {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .feature-item {
+      color: #7c8496;
+      font-size: 13px;
+    }
+    .feature-item .emoji {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 13px;
+      color: #4a5266;
+    }
+    .footer a {
+      color: #6a7a96;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      color: #8ab4f8;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 32px 20px;
+      }
+      h1 {
+        font-size: 26px;
+      }
+      .features {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .btn {
+        font-size: 15px;
+        padding: 14px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">🪟</div>
+  <h1>T-licX</h1>
+  <p class="subtitle">Nền tảng bán License Software</p>
+  <div class="divider"></div>
+
+  <div class="button-group">
+    <!-- Button Back to Home -->
+    <a href="/index.html" class="btn btn-back">
+      <span class="icon">←</span>
+      Quay lại trang chủ
+    </a>
+
+    <!-- Button Checkout -->
+    <a href="/checkout.html" class="btn btn-primary">
+      <span class="icon">💳</span>
+      Mua ngay
+      <span class="badge">Windows 10/11 Pro</span>
+    </a>
+
+    <!-- Button Admin -->
+    <a href="/admin.html" class="btn btn-secondary">
+      <span class="icon">🛠️</span>
+      Admin Panel
+      <span class="badge">Quản lý</span>
+    </a>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature-item">
+      <span class="emoji">🔒</span>
+      Bản quyền chính hãng
+    </div>
+    <div class="feature-item">
+      <span class="emoji">⚡</span>
+      Kích hoạt nhanh chóng
+    </div>
+    <div class="feature-item">
+      <span class="emoji">💬</span>
+      Hỗ trợ 24/7
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2026 <a href="/">T-licX</a> — License Software cho doanh nghiệp
+  </div>
+</div>
+
+</body>
+</html>
