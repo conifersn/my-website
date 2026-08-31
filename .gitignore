@@ -3,3 +3,9 @@ node_modules/
 database.sqlite
 *.log
 .vercel
+
+.vercel
+.env*
+ .env.local
+brain.db
+**/brain.db
