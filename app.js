@@ -4,14 +4,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const crypto = require('crypto');
-const sqlite3 = require('sqlite3').verbose();
 const { runQuery, allQuery, getQuery, pool } = require('./db');
 const { sendEmail } = require('./lib/email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const brainDbPath = path.join(__dirname, 'my-brain', 'brain.db');
-
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -28,101 +25,35 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-function brainAllQuery(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(brainDbPath);
-    db.all(sql, params, (err, rows) => {
-      db.close((closeErr) => {
-        if (err) reject(err);
-        else if (closeErr) reject(closeErr);
-        else resolve(rows);
-      });
-    });
-  });
-}
-
-function isDatabaseUnavailable(err) {
-  return err?.code === 'ECONNREFUSED' || String(err?.message || '').includes('ECONNREFUSED');
-}
-
-function brainRunQuery(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(brainDbPath);
-    db.run(sql, params, function(err) {
-      const result = { lastID: this?.lastID, changes: this?.changes || 0 };
-      db.close((closeErr) => {
-        if (err) reject(err);
-        else if (closeErr) reject(closeErr);
-        else resolve(result);
-      });
-    });
-  });
-}
-
-async function ensureBrainCustomerColumn(columnName, definition) {
-  const columns = await brainAllQuery('PRAGMA table_info(customers)');
-  if (!columns.some((column) => column.name === columnName)) {
-    await brainRunQuery(`ALTER TABLE customers ADD COLUMN ${columnName} ${definition}`);
-  }
-}
-
-async function initBrainDatabase() {
-  await brainRunQuery(`
-    CREATE TABLE IF NOT EXISTS customers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT,
-      phone TEXT,
-      company TEXT,
-      message TEXT,
-      source TEXT DEFAULT 'website_waitlist',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await ensureBrainCustomerColumn('email', 'TEXT');
-  await ensureBrainCustomerColumn('phone', 'TEXT');
-  await ensureBrainCustomerColumn('company', 'TEXT');
-  await ensureBrainCustomerColumn('message', 'TEXT');
-  await ensureBrainCustomerColumn('source', "TEXT DEFAULT 'website_waitlist'");
-
-  console.log('✅ brain.db customers ready');
-}
-
 async function insertCustomerRecord({ name, email, phone, company, message = '', source = 'manual_admin' }) {
-  let postgresId = null;
-
-  try {
-    const result = await runQuery(
-      'INSERT INTO customers (name, email, phone, company) VALUES ($1,$2,$3,$4) RETURNING id',
-      [name, email || '', phone || '', company || '']
-    );
-    postgresId = result.lastID || null;
-  } catch (err) {
-    if (!isDatabaseUnavailable(err)) {
-      throw err;
-    }
-    console.warn('PostgreSQL unavailable, saving customer only to brain.db');
-  }
-
-  const brainResult = await brainRunQuery(
-    'INSERT INTO customers (name, email, phone, company, message, source) VALUES (?,?,?,?,?,?)',
-    [name, email || '', phone || '', company || '', message || '', source]
+  const result = await runQuery(
+    'INSERT INTO customers (name, email, phone, company) VALUES ($1,$2,$3,$4) RETURNING id',
+    [name, email || '', phone || '', company || '']
   );
-
-  return { postgresId, brainId: brainResult.lastID };
+  return { postgresId: result.lastID };
 }
 
-// ====== MERCHANT INFO (ưu tiên env vars, fallback hardcode cho local dev) ======
-const MERCHANT_ID = process.env.MERCHANT_ID || 'SP-LIVE-NN443574';
-const SECRET_KEY  = process.env.SECRET_KEY  || 'spsk_live_WaDAG3dZgKdbsD8jfhxczqwdfZRoCKT3';
+// ====== MERCHANT INFO (lấy từ env vars) ======
+const MERCHANT_ID = process.env.MERCHANT_ID;
+const SECRET_KEY  = process.env.SECRET_KEY;
 const SEPAY_URL   = 'https://pay.sepay.vn/v1/checkout/init';
 const BASE_URL    = process.env.BASE_URL    || 'https://t-licx1.vercel.app';
 
+// ----- Input validation helpers -----
+function isValidEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  // simple RFC 5322-ish regex
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+}
+
+function isValidPhone(phone) {
+  if (!phone) return false;
+  const s = String(phone).replace(/[ \-\.\(\)\+]/g, '');
+  return /^[0-9]{7,15}$/.test(s);
+}
+
 // ====== POSTGRESQL DATABASE ======
 async function initDatabase() {
-  await initBrainDatabase();
-
   try {
     await runQuery(`
       CREATE TABLE IF NOT EXISTS products (
@@ -143,6 +74,8 @@ async function initDatabase() {
         name TEXT NOT NULL,
         email TEXT,
         phone TEXT,
+        need TEXT,
+        package TEXT,
         company TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -187,7 +120,7 @@ async function initDatabase() {
 
     console.log('✅ Database initialized');
   } catch (err) {
-    console.log('PostgreSQL unavailable, continuing with brain.db only:', err.message || err);
+    console.log('PostgreSQL unavailable or init error:', err.message || err);
   }
 }
 
@@ -253,6 +186,12 @@ app.post('/api/waitlist', async (req, res) => {
     const { name, email, phone, company, message } = req.body;
     if (!name || !email) {
       return res.status(400).json({ success: false, message: 'Tên và email là bắt buộc' });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Email không hợp lệ' });
+    }
+    if (phone && !isValidPhone(phone)) {
+      return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ' });
     }
 
     const customerResult = await insertCustomerRecord({
@@ -337,12 +276,7 @@ app.get('/api/customers', async (req, res) => {
     const customers = await allQuery('SELECT * FROM customers ORDER BY id DESC');
     res.json({ success: true, data: customers });
   } catch (err) {
-    if (!isDatabaseUnavailable(err)) {
-      return res.status(500).json({ success: false, message: err.message });
-    }
-
-    const customers = await brainAllQuery('SELECT * FROM customers ORDER BY id DESC');
-    res.json({ success: true, data: customers });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -351,6 +285,12 @@ app.post('/api/customers', async (req, res) => {
     const { name, email, phone, company } = req.body;
     if (!name) {
       return res.status(400).json({ success: false, message: 'Tên khách hàng là bắt buộc' });
+    }
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Email không hợp lệ' });
+    }
+    if (phone && !isValidPhone(phone)) {
+      return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ' });
     }
 
     const result = await insertCustomerRecord({
@@ -361,7 +301,7 @@ app.post('/api/customers', async (req, res) => {
       source: 'manual_admin'
     });
 
-    res.json({ success: true, message: 'Thêm khách hàng thành công', id: result.postgresId || result.brainId });
+    res.json({ success: true, message: 'Thêm khách hàng thành công', id: result.postgresId });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message || String(err) });
   }
@@ -381,15 +321,8 @@ app.put('/api/customers/:id', async (req, res) => {
         [name, email || '', phone || '', company || '', id]
       );
     } catch (err) {
-      if (!isDatabaseUnavailable(err)) {
-        throw err;
-      }
+      throw err;
     }
-
-    await brainRunQuery(
-      'UPDATE customers SET name=?, email=?, phone=?, company=? WHERE id=?',
-      [name, email || '', phone || '', company || '', id]
-    );
 
     res.json({ success: true, message: 'Cập nhật thành công' });
   } catch (err) {
@@ -401,15 +334,7 @@ app.delete('/api/customers/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
-    try {
-      await runQuery('DELETE FROM customers WHERE id=$1', [id]);
-    } catch (err) {
-      if (!isDatabaseUnavailable(err)) {
-        throw err;
-      }
-    }
-
-    await brainRunQuery('DELETE FROM customers WHERE id=?', [id]);
+    await runQuery('DELETE FROM customers WHERE id=$1', [id]);
 
     res.json({ success: true, message: 'Xóa khách hàng thành công' });
   } catch (err) {
@@ -566,6 +491,8 @@ app.post('/api/checkout', async (req, res) => {
     if (!fullName || !email || !phone || !amount) {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin' });
     }
+    if (!isValidEmail(email)) return res.status(400).json({ success: false, message: 'Email không hợp lệ' });
+    if (!isValidPhone(phone)) return res.status(400).json({ success: false, message: 'Số điện thoại không hợp lệ' });
 
     // Tạo invoice number tại đây (một lần duy nhất) để lưu vào DB
     // và dùng lại ở /generate-signature — đảm bảo khớp khi webhook tìm order
