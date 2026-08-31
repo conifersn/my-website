@@ -9,3 +9,4 @@ database.sqlite
  .env.local
 brain.db
 **/brain.db
+.vscode/

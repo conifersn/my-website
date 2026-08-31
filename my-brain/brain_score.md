@@ -4,7 +4,7 @@ Mục tiêu: Tracking xem AI viết bài có giống giọng của anh không, v
 
 ---
 
-## Ngày 1
+## Ngày 1 (day6)
 
 | Tiêu chí                                | Đánh giá |
 |-----------------------------------------|----------|
@@ -15,20 +15,58 @@ Mục tiêu: Tracking xem AI viết bài có giống giọng của anh không, v
 
 ---
 
-## Ngày 2
+## Ngày 2 (day7)
 
 | Tiêu chí                                | Đánh giá |
 |-----------------------------------------|----------|
-| Bài AI viết giống giọng tôi (1-10 điểm) | ___ / 10 |
-| Phản hồi từ khách hàng                  | ___      |
-| Tôi đã thêm gì vào brand voice          | ___      |
-| Nhận xét ngắn                           | ___      |
+| Bài AI viết giống giọng tôi (1-10 điểm) | 7 / 10 |
+| Phản hồi từ khách hàng                  | cải thiện hơn |
+| Tôi đã thêm gì vào brand voice          | sửa từ cho Ai tự học |
+| Nhận xét ngắn                           | tương đối ổn hơn ngày 1|
 
 ---
 
-## Ngày 3 - Ngày 7
+## Ngày 4 (day8)
 
-(Lặp lại mẫu ở trên cho các ngày còn lại)
+| Tiêu chí                                | Đánh giá |
+|-----------------------------------------|----------|
+| Bài AI viết giống giọng tôi (1-10 điểm) | 8 / 10 |
+| Phản hồi từ khách hàng                  | đánh giá tốt |
+| Tôi đã thêm gì vào brand voice          | sửa từ cho Ai tự học |
+| Nhận xét ngắn                           | có cải thiện  |
+
+---
+
+## Ngày 5 (day9)
+
+| Tiêu chí                                | Đánh giá |
+|-----------------------------------------|----------|
+| Bài AI viết giống giọng tôi (1-10 điểm) | 8 / 10 |
+| Phản hồi từ khách hàng                  | từ ngữ tự nhiên hơn lúc đầu |
+| Tôi đã thêm gì vào brand voice          | sửa từ cho Ai tự học |
+| Nhận xét ngắn                           | đủ dùng |
+
+---
+
+## Ngày 6
+
+| Tiêu chí                                | Đánh giá |
+|-----------------------------------------|----------|
+| Bài AI viết giống giọng tôi (1-10 điểm) | 8 / 10 |
+| Phản hồi từ khách hàng                  | có cải thiện |
+| Tôi đã thêm gì vào brand voice          | sửa từ cho Ai tự học |
+| Nhận xét ngắn                           | cải thiện hơn |
+
+---
+
+## Ngày 7
+
+| Tiêu chí                                | Đánh giá |
+|-----------------------------------------|----------|
+| Bài AI viết giống giọng tôi (1-10 điểm) | 8 / 10 |
+| Phản hồi từ khách hàng                  | có cải thiện |
+| Tôi đã thêm gì vào brand voice          | sửa từ cho Ai tự học |
+| Nhận xét ngắn                           | cũng khá |
 
 ---
 
@@ -36,7 +74,7 @@ Mục tiêu: Tracking xem AI viết bài có giống giọng của anh không, v
 
 | Tiêu chí           | Ngày 1 | Ngày 7 | Tiến bộ |
 |--------------------|--------|--------|---------|
-| Điểm trung bình    | ___    | ___    | ___     |
-| Lượng phản hồi     | ___    | ___    | ___     |
-| Brand voice update | ___    | ___    | ___     |
-| Kết luận           | ___    | ___    | ___     |
+| Điểm trung bình    | 5      | 8      | 3       |
+| Lượng phản hồi     | 0      | 4      | 2       |
+| Brand voice update | 0      | 5      | 5       |
+| Kết luận           | hơi máy móc| giọng văn linh hoạt hơn|
